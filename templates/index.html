@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synonym Guessing Game!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            font-size: small;
+            color: #a39c9c;
+        }
+        form {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        #result, #result2 {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Synonym Guessing Game!</h1>
+    <h2>Guess the original sentence from the one with the words replaced by synonyms!</h2>
+    <form id="sentence-form">
+        <button type="submit">Generate</button>
+    </form>
+    <div id="result"></div>
+    <form id="guess-form">
+        <label for="guess-sentence">Enter your guess:</label><br>
+        <input type="text" id="guess-sentence" name="guess-sentence" required><br><br>
+        <button type="submit">Submit Guess</button>
+    </form>
+    <div id="result2"></div>
+
+    <script>
+        document.getElementById('sentence-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Form submitted');
+
+            fetch('/define', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response received:', data);
+                if (data.error) {
+                    document.getElementById('result').innerText = 'Error: ' + data.error;
+                } else {
+                    document.getElementById('result').innerText = 'Your synonymed sentence: ' + data.definition_sentence;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        document.getElementById('guess-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const guess = document.getElementById('guess-sentence').value;
+
+    fetch('/game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sentence: guess }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById('result2').innerText = 'Error: ' + data.error;
+        } else {
+            const originalSentence = data.original_sentence.split(' ');
+            const guessWords = guess.split(' ');
+            let displaySentence = '';
+
+            for (let i = 0; i < originalSentence.length; i++) {
+                if (guessWords[i] === originalSentence[i]) {
+                    displaySentence += '<span style="color: green">' + guessWords[i] + '</span>';
+                } else {
+                    displaySentence += '<span style="color: red">' + guessWords[i] + '</span>';
+                }
+                if (i < originalSentence.length - 1) {
+                    displaySentence += ' ';
+                }
+            }
+
+            document.getElementById('result2').innerHTML = 'Original Sentence: ' + displaySentence;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+</script>
+</body>
+</html>
